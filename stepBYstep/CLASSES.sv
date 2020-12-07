@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-// System Verilog CLASSSES examples 
+// System Verilog CLASSES examples 
 
 
 
