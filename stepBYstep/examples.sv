@@ -98,7 +98,6 @@ $display("The number: %d",object_1.number);
 //object_1.number2=3;
 // We ca use class methods to acces to the number2 
 object_1.set(5);
-$stop;
 end 
 
 
@@ -139,6 +138,17 @@ task shiftleft;  data = data<<1;  endtask
 task shiftright; data = data>>1;  endtask 
 
 endclass 
+
+
+ShiftRegister reg1 = new;
+
+initial begin
+reg1.data=7'b111010;
+$display("Before Shift reg1.data= %b",reg1.data);
+#10;
+reg1.shiftleft();
+$display("After  Shift reg1.data= %b",reg1.data);
+end 
 
 
 //8- If we decleare a class member as "local", it will not be 
@@ -246,7 +256,6 @@ endmodule :example3
 //===============================================================
 // Parameterized Classes
 //  a-Value Parameters
-//  b-Type Parameters
 module example4();
 
 class Message1;
@@ -257,17 +266,12 @@ logic [11:0] address;
 endclass :Message1
 
 
-
 class Message2 #(int ADDR_W=16, DATA_W =8);
 
 logic [DATA_W-1:0] data;
 logic [ADDR_W-1:0] address;
 
 endclass: Message2 
-
-
-
-
 
 
 // m1 and m0 have same types 
@@ -293,20 +297,115 @@ m2.data=32'habc;
 //m3=m2; This is illegal because m3 and m2 have different types 
 end 
 
-
-// Type Parameters 
-
 endmodule: example4
 
 
+//===============================================================
+//                        Example 5                  
+//===============================================================
+//Testbench Automation and Constraints
+// * struct * class * rand type 
+// * randomize() with constraints *dynamic array 
+// * task * 
+module example5();
+
+
+typedef struct {
+  rand bit [10:0] ID;      // 11-bit identifier
+  rand bit        RTR;     // reply required?
+       bit  [1:0] rsvd;    // "reserved for expansion" bits
+  rand bit  [3:0] DLC;     // 4-bit Data Length Code
+  rand byte       data[];  // data payload
+       bit [14:0] CRC;     // 15-bit checksum
+} message_t;
+
+
+class CAN_Message;
+  rand message_t message;
+
+  // Constraints 
+  // When we Call test_message[i].randomize(); , the variables of 
+  // test_message[i] object get random values. This constraints force 
+  // those rand variables to get values in a certain range. 
+  // For example DLC is a 4bit number so it can get values from 0 to 15
+  // bit the constraint below forces it to get values from 0 to 8. 
+  constraint c1 { message.DLC inside {[0:8]}; }
+  // The 'data' in the struct is a dybamic array that can hold elements of type byte
+  // This constraint set the size of the array during execution.
+  // For example if message.DLC get a random value of 7, data array is going to
+  // hold 8 byte elements . 
+  constraint c2 { message.data.size() == message.DLC; }
+
+
+  // Class methods go here 
+  
+  task set_RTR (input bit new_value);
+    // Set the RTR bit as requested
+    message.RTR = new_value;
+    if (message.RTR) begin
+      // Messages with the RTR bit set should have no data.
+      message.DLC = 0;
+      clear_data();  // make the data list empty
+    end
+  endtask :set_RTR
+
+  task clear_data;
+    message.data.delete();
+  endtask :clear_data
+  
+    task getbits(ref bit data_o, input int delay=1);
+    bit [17:0] header;
+    bit [14:0] tail;
+    header = {message.ID,message.RTR,message.rsvd,message.DLC};
+    tail = message.CRC;
+    $display("tail=%0b",tail);
+    //step through message and output each bit (from left to right)
+    foreach(header[i]) #delay data_o = header[i];
+    foreach(message.data[i,j]) #delay data_o = message.data[i][j];
+    foreach(tail[i]) #delay data_o = tail[i];
+  endtask :getbits 
+  
+  
+  task print();
+    $display("Message ID   :0x%h  ",message.ID);
+    $display("Message RTR  :0x%h ",message.RTR);
+    $display("Message rsvd :0x%h ",message.rsvd);
+    $display("Message DLC  :0x%h ",message.DLC);
+    $display("Message data :0x%h ",message.data);
+    $display("Message CRC  :0x%h ",message.CRC);
+  endtask:print
+  
+  
+endclass: CAN_Message
 
 
 
 
+// Class Definition has been completed. Now lets use it in a testbench 
 
 
+  bit data_o;
+  const int bit_interval = 1;
+  CAN_Message test_message[10];
+  int interval=10;
 
-
+  initial
+  message_gen: begin
+    for (int i = 0; i < 10; i++) begin
+      $display("time = %0t",$time);
+      // Create the test_message[i]  object 
+      test_message[i] = new;
+      // Randomize the variables that has rand variable type in the CAN_Message class 
+      test_message[i].randomize();
+      // Call the print method , that prints all the variables in the struct 
+      test_message[i].print();
+      test_message[i].getbits(data_o,bit_interval);
+      #bit_interval $display("time = %0t",$time);
+    end
+    $finish;
+  end:message_gen  
+  
+endmodule :example5
 
 
 
