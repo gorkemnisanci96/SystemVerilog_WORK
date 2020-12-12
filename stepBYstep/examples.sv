@@ -410,6 +410,152 @@ endmodule :example5
 
 
 
+//===============================================================
+//                        Example 6                
+//===============================================================
+// System Verilog Interfaces 
+//
+//
+//
+module example6();
+
+// Interface definition
+interface Bus;
+  logic [7:0] Addr, Data;
+  logic RWn;
+endinterface :Bus
+
+
+
+// Using the interface
+// Interfaces encapsulate connectivity 
+module TestRAM;
+  Bus TheBus();                   // Instance the interface
+  logic [7:0] mem[0:7];             
+  RAM TheRAM (.MemBus(TheBus));   // Connect it
+  initial
+  begin
+    TheBus.RWn = 0;               // Drive and monitor the bus
+    #5;
+    TheBus.Addr = 0;
+    #5;
+    for (int I=0; I<7; I++)          begin
+      TheBus.Addr = TheBus.Addr + 1;
+      #5;
+                                     end                       
+    TheBus.RWn = 1;
+    #5;
+    TheBus.Data  =7'd13;
+    TheBus.RWn = 0;
+    #5;
+  end
+  
+endmodule :TestRAM
+
+
+
+module RAM (Bus MemBus);
+  logic [7:0] mem[0:255];
+
+  always @*
+    if (MemBus.RWn)
+      MemBus.Data = 7'd12;
+    else
+      mem[MemBus.Addr] = MemBus.Data;
+endmodule : RAM
+
+
+
+
+
+
+
+endmodule :example6
+
+//===============================================================
+//                        Example 7               
+//===============================================================
+// Interface Ports 
+//
+
+
+
+
+
+
+
+//Interface definition 
+interface ClockedBus (input Clk);
+  logic[7:0] Addr, Data;
+  logic RWn;
+endinterface :ClockedBus
+
+// RAM2 Module definition 
+module RAM2 (ClockedBus Bus);
+  logic [7:0] mem[0:255];
+  
+  always @(posedge Bus.Clk)
+    if (Bus.RWn)
+      Bus.Data = mem[Bus.Addr];
+    else
+      mem[Bus.Addr] = Bus.Data;
+endmodule :RAM2 
+
+
+module example7();
+// Using the interface
+  reg Clock=1'b0;
+    
+    always #5 Clock=~Clock;
+  // Instance the interface with an input, using named connection
+  ClockedBus TheBus (.Clk(Clock));
+  // We use the interface to encapsulate the connectivity here
+  RAM2 TheRAM (.Bus(TheBus));
+
+endmodule :example7
+
+
+
+
+
+//===============================================================
+//                        Example 8               
+//===============================================================
+//Parameterised Interface
+//
+//
+
+
+interface Channel #(parameter N = 0)
+    (input bit Clock, bit Ack, bit Sig);
+  bit [N-1:0] Buff;
+  initial begin
+    for (int i = 0; i < N; i++)
+      Buff[i] = 0;
+        end
+  always @ (posedge Clock)  begin      
+   if(Ack == 1) Sig = Buff[N-1];
+   else         Sig = 0;
+     
+                            end                                              
+endinterface :Channel
+  
+  
+module TX(Channel Ch);
+
+assign Ch.Buff=7'd12;
+
+endmodule :TX
+
+
+module example8();
+// Using the interface
+  bit Clock, Ack, Sig;
+  // Instance the interface. The parameter N is set to 7using named
+  // connection while the ports are connected using implicit connection
+  Channel #(.N(7)) TheCh (.*);
+  TX TheTx (.Ch(TheCh));
+endmodule :example8
 
 
 
