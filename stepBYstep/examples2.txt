@@ -1,0 +1,146 @@
+//========================================================================
+//
+//                         EXAMPLE-1 
+//========================================================================
+// The example below is taken from http://www.testbench.in/CO_04_COVER_POINTS.html and executed on https://www.edaplayground.com/
+//  Eda Playground (https://www.edaplayground.com/) Settings 
+//  Testbench + Design : SystemVerilog/Verilog 
+// Tools & Simulators  : Mentor Questa 2020.1
+// Compile Options : -timescale 1ns/1ns
+// Run Options : -voptargs=+acc=npr
+// Use run.do Tcl File 
+
+
+/////////////////////////////////////////////
+//
+//            testbench.sv File
+/////////////////////////////////////////////
+
+module eda_example1;
+
+bit [0:3] y;
+bit [0:2] values[$]= '{3,5,6};
+
+covergroup cg;
+cover_point_y : coverpoint y;
+endgroup
+
+cg cg_inst = new();
+
+initial
+
+foreach(values[i])
+begin
+y = values[i];
+cg_inst.sample();
+end
+  
+endmodule :eda_example1
+
+
+/////////////////////////////////////////////
+//
+//            run.do File
+/////////////////////////////////////////////
+run -all
+coverage report -detail
+
+
+/////////////////////////////////////////////
+//
+//            Output
+/////////////////////////////////////////////
+// Definition : 
+// As you can see in the above example, the 'y' is a 4-bit variable and defined as coverage point.
+// Since it is 4-bit, it can take 16 different values. We defined an array that cotains only 3 different values.
+// In the initial block, we created a loop and assign elements of the array "values" to coverage point "y" one by one. 
+// Then we sampled coverage point after each assignment. Since y could get 16 different values but we assigned only three 
+// Coverage report(shown below) says we covered only three values, which is 18.75%(3/16) and missed 13(16-3) values. 
+# =================================================================================
+# 
+# Covergroup Coverage:
+#     Covergroups                      1        na        na    18.75%
+#         Coverpoints/Crosses          1        na        na        na
+#             Covergroup Bins         16         3        13    18.75%
+# ----------------------------------------------------------------------------------------------------------
+# Covergroup                                             Metric       Goal       Bins    Status               
+#                                                                                                          
+# ----------------------------------------------------------------------------------------------------------
+#  TYPE /eda_example1/cg                                 18.75%        100          -    Uncovered            
+#     covered/total bins:                                     3         16          -                      
+#     missing/total bins:                                    13         16          -                      
+#     % Hit:                                             18.75%        100          -                      
+#     Coverpoint cover_point_y                           18.75%        100          -    Uncovered            
+#         covered/total bins:                                 3         16          -                      
+#         missing/total bins:                                13         16          -                      
+#         % Hit:                                         18.75%        100          -                      
+#  Covergroup instance \/eda_example1/cg_inst            18.75%        100          -    Uncovered            
+#     covered/total bins:                                     3         16          -                      
+#     missing/total bins:                                    13         16          -                      
+#     % Hit:                                             18.75%        100          -                      
+#     Coverpoint cover_point_y                           18.75%        100          -    Uncovered            
+#         covered/total bins:                                 3         16          -                      
+#         missing/total bins:                                13         16          -                      
+#         % Hit:                                         18.75%        100          -                      
+#         bin auto[0]                                         0          1          -    ZERO                 
+#         bin auto[1]                                         0          1          -    ZERO                 
+#         bin auto[2]                                         0          1          -    ZERO                 
+#         bin auto[3]                                         1          1          -    Covered              
+#         bin auto[4]                                         0          1          -    ZERO                 
+#         bin auto[5]                                         1          1          -    Covered              
+#         bin auto[6]                                         1          1          -    Covered              
+#         bin auto[7]                                         0          1          -    ZERO                 
+#         bin auto[8]                                         0          1          -    ZERO                 
+#         bin auto[9]                                         0          1          -    ZERO                 
+#         bin auto[10]                                        0          1          -    ZERO                 
+#         bin auto[11]                                        0          1          -    ZERO                 
+#         bin auto[12]                                        0          1          -    ZERO                 
+#         bin auto[13]                                        0          1          -    ZERO                 
+#         bin auto[14]                                        0          1          -    ZERO                 
+#         bin auto[15]                                        0          1          -    ZERO                 
+# 
+# COVERGROUP COVERAGE:
+# ----------------------------------------------------------------------------------------------------------
+# Covergroup                                             Metric       Goal       Bins    Status               
+#                                                                                                          
+# ----------------------------------------------------------------------------------------------------------
+#  TYPE /eda_example1/cg                                 18.75%        100          -    Uncovered            
+#     covered/total bins:                                     3         16          -                      
+#     missing/total bins:                                    13         16          -                      
+#     % Hit:                                             18.75%        100          -                      
+#     Coverpoint cover_point_y                           18.75%        100          -    Uncovered            
+#         covered/total bins:                                 3         16          -                      
+#         missing/total bins:                                13         16          -                      
+#         % Hit:                                         18.75%        100          -                      
+#  Covergroup instance \/eda_example1/cg_inst            18.75%        100          -    Uncovered            
+#     covered/total bins:                                     3         16          -                      
+#     missing/total bins:                                    13         16          -                      
+#     % Hit:                                             18.75%        100          -                      
+#     Coverpoint cover_point_y                           18.75%        100          -    Uncovered            
+#         covered/total bins:                                 3         16          -                      
+#         missing/total bins:                                13         16          -                      
+#         % Hit:                                         18.75%        100          -                      
+#         bin auto[0]                                         0          1          -    ZERO                 
+#         bin auto[1]                                         0          1          -    ZERO                 
+#         bin auto[2]                                         0          1          -    ZERO                 
+#         bin auto[3]                                         1          1          -    Covered              
+#         bin auto[4]                                         0          1          -    ZERO                 
+#         bin auto[5]                                         1          1          -    Covered              
+#         bin auto[6]                                         1          1          -    Covered              
+#         bin auto[7]                                         0          1          -    ZERO                 
+#         bin auto[8]                                         0          1          -    ZERO                 
+#         bin auto[9]                                         0          1          -    ZERO                 
+#         bin auto[10]                                        0          1          -    ZERO                 
+#         bin auto[11]                                        0          1          -    ZERO                 
+#         bin auto[12]                                        0          1          -    ZERO                 
+#         bin auto[13]                                        0          1          -    ZERO                 
+#         bin auto[14]                                        0          1          -    ZERO                 
+#         bin auto[15]                                        0          1          -    ZERO                 
+# 
+# TOTAL COVERGROUP COVERAGE: 18.75%  COVERGROUP TYPES: 1
+# 
+# Total Coverage By Instance (filtered view): 18.75%
+# 
+# 
+# End time: 14:02:39 on Dec 22,2020, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
