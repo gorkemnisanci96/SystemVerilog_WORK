@@ -1,6 +1,7 @@
 //========================================================================
 //
 //                         EXAMPLE-1 
+// SIMPLE FUNCTIONAL COVERAGE EXAMPLE 
 //========================================================================
 // The example below is taken from http://www.testbench.in/CO_04_COVER_POINTS.html and executed on https://www.edaplayground.com/
 //  Eda Playground (https://www.edaplayground.com/) Settings 
